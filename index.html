@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Speckle Public 3D Viewer with PowerBI Integration</title>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+        }
+        #speckle-viewer {
+            width: 60%;
+            height: 100%;
+        }
+        #powerbi-container {
+            width: 40%;
+            height: 100%;
+            background: #f4f4f4;
+        }
+        #machine-info {
+            padding: 10px;
+            background: #e0e0e0;
+        }
+    </style>
+    <!-- Speckle Viewer SDK -->
+    <script src="https://unpkg.com/@speckle/viewer@2.x.x/dist/speckle-viewer.js"></script>
+</head>
+<body>
+    <div id="speckle-viewer"></div>
+    <div id="powerbi-container">
+        <div id="machine-info">Select a machine in the 3D model</div>
+        <iframe id="powerbi-report" width="100%" height="90%"></iframe>
+    </div>
+
+    <script>
+        // Speckle Viewer Setup for Public Model
+        async function initSpeckleViewer() {
+            const viewer = new SpeckleViewer.Viewer({
+                container: document.getElementById('speckle-viewer'),
+                showSettingsButton: false
+            })
+
+            // Use your public Speckle stream URL
+            await viewer.loadStream('https://app.speckle.systems/projects/5df9bb5645/models/889d6b246f')
+            
+            // Basic click interaction
+            viewer.on('object-clicked', (object) => {
+                // Example mapping - adjust based on your actual model structure
+                const machineMappings = {
+                    'Conveyor': 'https://app.powerbi.com/groups/bead3391-f7e4-4cdb-aa7c-0ad9c99aa000/dashboards/9852b004-4388-4a71-9c0b-0a8aac70c6c0?experience=power-bi&clientSideAuth=0&refreshAccessToken=true',
+                    'Robot': 'POWERBI_REPORT_URL_FOR_ROBOT',
+                    // Add more mappings based on your model's object names
+                }
+
+                // Try to match based on object name or type
+                const matchedMachine = Object.keys(machineMappings).find(key => 
+                    object.name?.includes(key) || object.type?.includes(key)
+                )
+
+                if (matchedMachine) {
+                    document.getElementById('powerbi-report').src = machineMappings[matchedMachine]
+                    document.getElementById('machine-info').textContent = `Selected: ${matchedMachine}`
+                }
+            })
+        }
+
+        // Initialize on page load
+        initSpeckleViewer()
+    </script>
+</body>
+</html>
